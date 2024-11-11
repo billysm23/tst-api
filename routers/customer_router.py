@@ -55,79 +55,52 @@ def write_customers(data: Dict) -> None:
         raise HTTPException(status_code=500, detail="Error saving data")
 
 def get_next_id() -> int:
-    data = read_customers()
-    if not data["customers"]:
-        return 1
-    return max(customer["id"] for customer in data["customers"]) + 1
+    return max([customer["id"] for customer in CUSTOMERS["customers"]], default=0) + 1
 
-# API Routes
-@router.get("/customers", response_model=List[Customer], tags=["customers"])
-async def get_all_customers():
-    try:
-        data = read_customers()
-        return data["customers"]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# Root endpoint
+@router.get("/")
+async def root():
+    return {"message": "FitKitchen API is running"}
 
-@router.get("/customers/{customer_id}", response_model=Customer, tags=["customers"])
+# Get all customers
+@router.get("/api/customers", response_model=List[Customer])
+async def get_customers():
+    return CUSTOMERS["customers"]
+
+# Get single customer
+@router.get("/api/customers/{customer_id}", response_model=Customer)
 async def get_customer(customer_id: int):
-    try:
-        data = read_customers()
-        customer = next((c for c in data["customers"] if c["id"] == customer_id), None)
-        if not customer:
-            raise HTTPException(status_code=404, detail="Customer not found")
-        return customer
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    customer = next((c for c in CUSTOMERS["customers"] if c["id"] == customer_id), None)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    return customer
 
-@router.post("/customers", response_model=Customer, tags=["customers"])
+# Create customer
+@router.post("/api/customers", response_model=Customer)
 async def create_customer(customer: CustomerCreate):
-    try:
-        data = read_customers()
-        new_customer = customer.dict()
-        new_customer["id"] = get_next_id()
-        
-        data["customers"].append(new_customer)
-        write_customers(data)
-        return new_customer
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    new_customer = customer.dict()
+    new_customer["id"] = get_next_id()
+    CUSTOMERS["customers"].routerend(new_customer)
+    return new_customer
 
-@router.put("/customers/{customer_id}", response_model=Customer, tags=["customers"])
-async def update_customer(customer_id: int, updated_customer: CustomerCreate):
-    try:
-        data = read_customers()
-        customer_idx = next((idx for idx, c in enumerate(data["customers"]) if c["id"] == customer_id), None)
-        
-        if customer_idx is None:
-            raise HTTPException(status_code=404, detail="Customer not found")
-        
-        updated_data = updated_customer.dict()
-        updated_data["id"] = customer_id
-        
-        data["customers"][customer_idx] = updated_data
-        write_customers(data)
-        return updated_data
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# Update customer
+@router.put("/api/customers/{customer_id}", response_model=Customer)
+async def update_customer(customer_id: int, customer: CustomerCreate):
+    customer_idx = next((idx for idx, c in enumerate(CUSTOMERS["customers"]) if c["id"] == customer_id), None)
+    if customer_idx is None:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    updated_customer = customer.dict()
+    updated_customer["id"] = customer_id
+    CUSTOMERS["customers"][customer_idx] = updated_customer
+    return updated_customer
 
-@router.delete("/customers/{customer_id}", tags=["customers"])
+# Delete customer
+@router.delete("/api/customers/{customer_id}")
 async def delete_customer(customer_id: int):
-    try:
-        data = read_customers()
-        customer = next((c for c in data["customers"] if c["id"] == customer_id), None)
-        
-        if not customer:
-            raise HTTPException(status_code=404, detail="Customer not found")
-        
-        data["customers"] = [c for c in data["customers"] if c["id"] != customer_id]
-        write_customers(data)
-        return {"message": "Customer deleted successfully"}
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    customer_idx = next((idx for idx, c in enumerate(CUSTOMERS["customers"]) if c["id"] == customer_id), None)
+    if customer_idx is None:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    CUSTOMERS["customers"].pop(customer_idx)
+    return {"message": "Customer deleted successfully"}
