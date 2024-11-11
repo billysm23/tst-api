@@ -1,13 +1,22 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from routers import customer_router
-import uvicorn
+import os
 
 app = FastAPI(
     title="FitKitchen API",
-    description="API for personalized catering service",
+    description="API for FitKitchen Customer Management",
     version="1.0.0"
 )
 
+# CORS middleware configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(customer_router.router)
 
 @app.get("/")
