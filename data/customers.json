@@ -1,0 +1,36 @@
+{
+    "customers": [
+        {
+            "id": 1,
+            "name": "Dama DD",
+            "age": 20,
+            "height": 165,
+            "weight": 56,
+            "health_goals": "weight_maintenance"
+        },
+        {
+            "id": 2,
+            "name": "Alvin FA",
+            "age": 20,
+            "height": 165,
+            "weight": 50,
+            "health_goals": "weight_gain"
+        },
+        {
+            "name": "Julkifli",
+            "age": 21,
+            "height": 170.0,
+            "weight": 65.0,
+            "health_goals": "muscle_growth",
+            "id": 4
+        },
+        {
+            "name": "Daffari",
+            "age": 21,
+            "height": 170.0,
+            "weight": 60.0,
+            "health_goals": "muscle_growth",
+            "id": 5
+        }
+    ]
+}
